@@ -1,22 +1,44 @@
 package db
 
 import (
-	"entgo.io/ent/examples/start/ent"
+	"context"
+	"github.com/aid95/zaksim-discord-bot/ent"
 	"sync"
 )
 
 var m sync.Mutex
-var instance *ent.Client
 
-func Instance() (*ent.Client, error) {
+type Connection struct {
+	Client *ent.Client
+	Ctx    context.Context
+}
+
+var conn *Connection
+
+func Instance() *Connection {
 	m.Lock()
 	defer m.Unlock()
-	if instance == nil {
-		client, err := ent.Open("postgres","host=<host> port=<port> user=<user> dbname=<database> password=<pass>")
-		if err != nil {
-			return nil, err
+	if conn == nil {
+		if err := Connect(); err != nil {
+			return nil
 		}
-		instance = client
 	}
-	return instance, nil
+	return conn
+}
+
+func Connect() error {
+	if conn == nil {
+		client, err := ent.Open("postgres", "host=<host> port=<port> user=<user> dbname=<database> password=<pass>")
+		if err != nil {
+			return err
+		}
+		conn = &Connection{Client: client, Ctx: context.Background()}
+	}
+	return nil
+}
+
+func Close() {
+	if conn != nil {
+		conn.Client.Close()
+	}
 }
