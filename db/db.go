@@ -2,7 +2,10 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"github.com/aid95/zaksim-discord-bot/ent"
+	_ "github.com/lib/pq"
+	"os"
 	"sync"
 )
 
@@ -19,26 +22,40 @@ func Instance() *Connection {
 	m.Lock()
 	defer m.Unlock()
 	if conn == nil {
-		if err := Connect(); err != nil {
+		if err := Open(); err != nil {
 			return nil
 		}
 	}
 	return conn
 }
 
-func Connect() error {
+func Open() error {
 	if conn == nil {
-		client, err := ent.Open("postgres", "host=<host> port=<port> user=<user> dbname=<database> password=<pass>")
+		host := os.Getenv("DB_HOST")
+		user := os.Getenv("DB_USER")
+		pass := os.Getenv("DB_PASSWORD")
+		db := os.Getenv("DB_NAME")
+		port := os.Getenv("DB_PORT")
+		client, err := ent.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", host, port, user, db, pass))
 		if err != nil {
 			return err
 		}
-		conn = &Connection{Client: client, Ctx: context.Background()}
+
+		ctx := context.Background()
+		if err := client.Schema.Create(ctx); err != nil {
+			return err
+		}
+
+		conn = &Connection{Client: client, Ctx: ctx}
 	}
 	return nil
 }
 
-func Close() {
+func Close() error {
 	if conn != nil {
-		conn.Client.Close()
+		if err := conn.Client.Close(); err != nil {
+			return err
+		}
 	}
+	return nil
 }

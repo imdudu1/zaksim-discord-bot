@@ -1,38 +1,28 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/aid95/zaksim-discord-bot/bot/handlers"
 	"github.com/aid95/zaksim-discord-bot/db"
 	"github.com/aid95/zaksim-discord-bot/utils/gen/message"
 	"github.com/bwmarrin/discordgo"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
-var (
-	Token string
-)
-
-func init() {
-	flag.StringVar(&Token, "t", "", "Discord bot token")
-}
-
 func main() {
 	// Database 연결.
-	if err := db.Connect(); err != nil {
-		fmt.Println(message.Error("💀 Failed to connect to database."))
-		return
+	if err := db.Open(); err != nil {
+		log.Fatal(message.Error("Failed to connect to database. "), err)
 	}
 	defer db.Close()
 
 	// DiscordGo를 위한 준비 및 실행
-	dg, err := discordgo.New("Bot " + Token)
+	dg, err := discordgo.New("Bot " + os.Getenv("DISCORD_BOT_TOKEN"))
 	if err != nil {
-		fmt.Println(message.Error("💀 Failed creating Discord session."))
-		return
+		log.Fatal(message.Error("Failed creating Discord session. "), err)
 	}
 	defer dg.Close()
 
@@ -41,8 +31,7 @@ func main() {
 
 	//-- 봇 연결
 	if err = dg.Open(); err != nil {
-		fmt.Println(message.Error("💀 Failed opening connection."))
-		return
+		log.Fatal(message.Error("Failed opening connection. "), err)
 	}
 
 	fmt.Println(message.Info("🚀 Zaksim bot is now running, Press CTRL-C to exit."))

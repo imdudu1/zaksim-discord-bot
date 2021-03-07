@@ -1,9 +1,9 @@
 package message
 
 func Error(msg string) string {
-	return "[ERROR] " + msg
+	return "[ERROR 💀] " + msg
 }
 
 func Info(msg string) string {
-	return "[INFO] " + msg
+	return "[INFO ❗] " + msg
 }
