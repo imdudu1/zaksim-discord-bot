@@ -60,7 +60,7 @@ func endCommute(channel string, author string) (bool, error) {
 	}
 	//-- 2. 오늘 출근 기록에서 퇴근 시간을 갱신한다.
 	start, end, _ := tiktok.Today("Asia/Seoul")
-	s, _ := tiktok.LocaleNow("Asia/Seoul")
+	s, _ := tiktok.LocalNow("Asia/Seoul")
 	if _, err := conn.Client.Commute.
 		Update().
 		Where(

@@ -15,19 +15,15 @@ func Truncate(t time.Time) time.Time {
 
 // Today 오늘 하루를 나타내는 시간의 범위를 반환하는 함수
 func Today(loc string) (time.Time, time.Time, error) {
-	location, err := time.LoadLocation(loc)
-	if err != nil {
-		return time.Time{}, time.Time{}, err
-	}
-	now := time.Now().In(location)
+	now, err := LocalNow(loc)
 	return Bod(now), Truncate(now).AddDate(0, 0, 1), err
 }
 
-// LocaleNow 타임존 문자열을 이용해 Location 값을 만드는 함수
-func LocaleNow(loc string) (time.Time, error) {
+// LocalNow 타임존 문자열을 이용해 Location 값을 만드는 함수
+func LocalNow(loc string) (time.Time, error) {
 	location, err := time.LoadLocation(loc)
 	if err != nil {
-		return time.Time{}, err
+		return time.Now(), err
 	}
 	return time.Now().In(location), nil
 }
