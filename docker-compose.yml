@@ -1,0 +1,31 @@
+version: "3.7"
+
+services:
+  zaksimbot:
+    container_name: zaksimbot
+    build:
+      context: .
+    environment:
+      - DB_HOST=zaksimdb
+      - DB_PORT=5432
+      - DB_USER=zaksim
+      - DB_PASSWORD=YOUR_DB_PASSWORD
+      - DB_NAME=zaksimdb
+      - DISCORD_BOT_TOKEN=YOUR_DISCORD_BOT_TOKEN
+    depends_on:
+      - zaksimdb
+  zaksimdb:
+    container_name: zaksimdb
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=zaksim
+      - POSTGRES_DB=zaksimdb
+      - POSTGRES_PASSWORD=YOUR_DB_PASSWORD
+    ports:
+      - 5432:5432
+    volumes:
+      - dbdisk:/var/lib/postgresql/data
+
+volumes:
+  dbdisk:
