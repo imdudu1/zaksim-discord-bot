@@ -2,14 +2,16 @@ package handlers
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/aid95/zaksim-discord-bot/db"
 	"github.com/aid95/zaksim-discord-bot/ent/commute"
 	"github.com/aid95/zaksim-discord-bot/utils/gen/message"
 	"github.com/aid95/zaksim-discord-bot/utils/tiktok"
 	"github.com/bwmarrin/discordgo"
-	"time"
 )
 
+// CommuteHandler 출퇴근 명령어를 처리하기 위한 핸들러
 func CommuteHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == ";;출근" {
 		goToWorkProcess(s, m)
@@ -43,8 +45,7 @@ func startCommute(channel string, author string) (bool, error) {
 		Create().
 		SetChannelID(channel).
 		SetAuthorID(author).
-		Save(conn.Ctx);
-		err != nil {
+		Save(conn.Ctx); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -59,6 +60,7 @@ func endCommute(channel string, author string) (bool, error) {
 	}
 	//-- 2. 오늘 출근 기록에서 퇴근 시간을 갱신한다.
 	start, end, _ := tiktok.Today("Asia/Seoul")
+	s, _ := tiktok.LocaleNow("Asia/Seoul")
 	if _, err := conn.Client.Commute.
 		Update().
 		Where(
@@ -66,9 +68,8 @@ func endCommute(channel string, author string) (bool, error) {
 				commute.ChannelIDEQ(channel),
 				commute.AuthorIDEQ(author),
 				commute.And(commute.GoToWorkAtGTE(start), commute.GoToWorkAtLT(end)))).
-		SetGetOffAt(tiktok.LocaleNow("Asia/Seoul")).
-		Save(conn.Ctx);
-		err != nil {
+		SetGetOffAt(s).
+		Save(conn.Ctx); err != nil {
 		return false, err
 	}
 	return true, nil

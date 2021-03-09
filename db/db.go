@@ -3,14 +3,16 @@ package db
 import (
 	"context"
 	"fmt"
-	"github.com/aid95/zaksim-discord-bot/ent"
-	_ "github.com/lib/pq"
 	"os"
 	"sync"
+
+	"github.com/aid95/zaksim-discord-bot/ent"
+	_ "github.com/lib/pq"
 )
 
 var m sync.Mutex
 
+// Connection DB 연결 정보
 type Connection struct {
 	Client *ent.Client
 	Ctx    context.Context
@@ -18,6 +20,7 @@ type Connection struct {
 
 var conn *Connection
 
+// Instance DB 연결 개체를 반환받기 위한 함수
 func Instance() *Connection {
 	m.Lock()
 	defer m.Unlock()
@@ -29,6 +32,7 @@ func Instance() *Connection {
 	return conn
 }
 
+// Open DB 연결 작업 전 실질적인 연결을 위한 함수
 func Open() error {
 	if conn == nil {
 		host := os.Getenv("DB_HOST")
@@ -51,6 +55,7 @@ func Open() error {
 	return nil
 }
 
+// Close DB 작업 완료 후 자원을 반환하기 위한 함수
 func Close() error {
 	if conn != nil {
 		if err := conn.Client.Close(); err != nil {

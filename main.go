@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/aid95/zaksim-discord-bot/bot/handlers"
-	"github.com/aid95/zaksim-discord-bot/db"
-	"github.com/aid95/zaksim-discord-bot/utils/gen/message"
-	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/aid95/zaksim-discord-bot/bot/handlers"
+	"github.com/aid95/zaksim-discord-bot/db"
+	"github.com/aid95/zaksim-discord-bot/utils/gen/message"
+	"github.com/bwmarrin/discordgo"
 )
 
 func main() {
@@ -34,7 +35,7 @@ func main() {
 		log.Fatal(message.Error("Failed opening connection. "), err)
 	}
 
-	fmt.Println(message.Info("🚀 Zaksim bot is now running, Press CTRL-C to exit."))
+	fmt.Println(message.Info("Zaksim bot is now running 🚀, Press CTRL-C to exit."))
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc

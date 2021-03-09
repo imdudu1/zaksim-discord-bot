@@ -1,10 +1,11 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"github.com/aid95/zaksim-discord-bot/utils/tiktok"
-	"time"
 )
 
 // Commute holds the schema definition for the Commute entity.
@@ -15,7 +16,8 @@ type Commute struct {
 // Fields of the Commute.
 func (Commute) Fields() []ent.Field {
 	tz := func() time.Time {
-		return tiktok.LocaleNow("Asia/Seoul")
+		t, _ := tiktok.LocaleNow("Asia/Seoul")
+		return t
 	}
 	return []ent.Field{
 		field.String("channel_id"),
