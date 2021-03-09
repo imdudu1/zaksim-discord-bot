@@ -7,6 +7,7 @@ import (
 	"github.com/aid95/zaksim-discord-bot/utils/gen/message"
 	"github.com/aid95/zaksim-discord-bot/utils/tiktok"
 	"github.com/bwmarrin/discordgo"
+	"time"
 )
 
 func CommuteHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -20,19 +21,14 @@ func CommuteHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 func isExistTodayCommuteData(channel string, author string) bool {
 	conn := db.Instance()
 	start, end, _ := tiktok.Today("Asia/Seoul")
-	exist, err := conn.Client.Commute.Query().
+	exist, _ := conn.Client.Commute.Query().
 		Where(
 			commute.And(
 				commute.ChannelIDEQ(channel),
 				commute.AuthorIDEQ(author),
 				commute.And(commute.GoToWorkAtGTE(start), commute.GoToWorkAtLT(end)))).
 		Exist(conn.Ctx)
-	if err != nil {
-		return true
-	} else if exist {
-		return true
-	}
-	return false
+	return exist
 }
 
 func startCommute(channel string, author string) (bool, error) {
@@ -70,12 +66,35 @@ func endCommute(channel string, author string) (bool, error) {
 				commute.ChannelIDEQ(channel),
 				commute.AuthorIDEQ(author),
 				commute.And(commute.GoToWorkAtGTE(start), commute.GoToWorkAtLT(end)))).
-		SetGetOffAt(tiktok.LocNow("Asia/Seoul")).
+		SetGetOffAt(tiktok.LocaleNow("Asia/Seoul")).
 		Save(conn.Ctx);
 		err != nil {
 		return false, err
 	}
 	return true, nil
+}
+
+func getCommuteInfo(channel string, author string) (time.Duration, error) {
+	// 퇴근 시 출력할 근무 시간
+	conn := db.Instance()
+	//-- 1. 금일 출근 기록이 있는지 검사한다.
+	if exist := isExistTodayCommuteData(channel, author); !exist {
+		return time.Duration(0), nil
+	}
+	//-- 2. 금일 출근 기록이 있다면 퇴근 시간 - 출근 시간을 한다.
+	start, end, _ := tiktok.Today("Asia/Seoul")
+	r, err := conn.Client.Commute.Query().
+		Select("go_to_work_at", "get_off_at").
+		Where(
+			commute.And(
+				commute.ChannelIDEQ(channel),
+				commute.AuthorIDEQ(author),
+				commute.And(commute.GoToWorkAtGTE(start), commute.GoToWorkAtLT(end)))).
+		First(conn.Ctx)
+	if err != nil {
+		return time.Duration(0), err
+	}
+	return r.GetOffAt.Sub(r.GoToWorkAt), nil
 }
 
 func goToWorkProcess(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -95,7 +114,8 @@ func getOffWorkProcess(s *discordgo.Session, m *discordgo.MessageCreate) {
 		fmt.Println(message.Error(""), err)
 	} else {
 		if complate {
-			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s님 퇴근! 오늘 하루도 고생하셨습니다. 🚌", m.Author.Username))
+			d, _ := getCommuteInfo(m.ChannelID, m.Author.ID)
+			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s님 퇴근! 오늘 하루도 고생하셨습니다. 🚌 - %v", m.Author.Username, d))
 		} else {
 			s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("%s님의 금일 출근 기록이 없습니다. 😅", m.Author.Username))
 		}

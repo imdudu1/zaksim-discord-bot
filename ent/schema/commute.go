@@ -15,7 +15,7 @@ type Commute struct {
 // Fields of the Commute.
 func (Commute) Fields() []ent.Field {
 	tz := func() time.Time {
-		return tiktok.LocNow("Asia/Seoul")
+		return tiktok.LocaleNow("Asia/Seoul")
 	}
 	return []ent.Field{
 		field.String("channel_id"),

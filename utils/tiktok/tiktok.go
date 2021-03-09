@@ -22,7 +22,7 @@ func Today(loc string) (time.Time, time.Time, error) {
 	return Bod(now), Truncate(now).AddDate(0, 0, 1), err
 }
 
-func LocNow(loc string) time.Time {
+func LocaleNow(loc string) time.Time {
 	location, err := time.LoadLocation(loc)
 	if err != nil {
 		return time.Time{}
